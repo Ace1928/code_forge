@@ -25,9 +25,7 @@ except Exception:  # pragma: no cover - optional dependency
 from .memory import MemoryStore
 
 
-PRIMARY_MODEL = (
-    "mradermacher/Uncensored_DeepSeek_R1_Distill_Qwen_1.5B_safetensors_finetune_2-GGUF"
-)
+PRIMARY_MODEL = "Qwen/Qwen3-1.7B-FP8"
 FALLBACK_MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
 
