@@ -17,22 +17,30 @@ local JSON file. During idle periods the engine generates autonomous
 
 ## Usage
 
-Run the chat interface (optionally specifying a HuggingFace model):
+Run the chat interface. By default the engine uses the
+`mradermacher/Uncensored_DeepSeek_R1_Distill_Qwen_1.5B_safetensors_finetune_2-GGUF`
+model from HuggingFace:
 
 ```bash
-python -m forgeengine.cli --model Qwen/Qwen2.5-0.5B chat
+forgengine chat
 ```
 
-During testing or on resource-limited systems you can use a tiny model:
+To select a different model:
 
 ```bash
-python -m forgeengine.cli --model sshleifer/tiny-gpt2 chat
+forgengine --model sshleifer/tiny-gpt2 chat
+```
+
+Use `--max-tokens` to control the length of responses:
+
+```bash
+forgengine --max-tokens 128 chat
 ```
 
 View stored interactions:
 
 ```bash
-python -m forgeengine.cli memory
+forgengine memory
 ```
 
 Other subcommands include `events` and `glossary`. Use `--help` for details.

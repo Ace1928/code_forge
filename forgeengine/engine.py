@@ -20,8 +20,8 @@ class NarrativeEngine:
         self,
         memory_path: str = "memory.json",
         think_interval: int = 10,
-        model_name: str = "Qwen/Qwen1.5-0.5B",
-        max_tokens: int = 60,
+        model_name: str = "mradermacher/Uncensored_DeepSeek_R1_Distill_Qwen_1.5B_safetensors_finetune_2-GGUF",
+        max_tokens: int = 512,
     ) -> None:
         self.store = MemoryStore(memory_path)
         self.think_interval = think_interval
