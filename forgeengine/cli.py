@@ -1,8 +1,41 @@
 """Command line interface for the Narrative Engine."""
 
 import argparse
+import json
+import os
 
-from .engine import NarrativeEngine
+from .engine import NarrativeEngine, PRIMARY_MODEL
+
+
+CONFIG_PATH = os.path.expanduser("~/.forgengine.json")
+
+
+def load_config(path: str = CONFIG_PATH, force_setup: bool = False) -> dict:
+    """Load configuration or run interactive setup."""
+    path = os.path.expanduser(path)
+    if force_setup or not os.path.exists(path):
+        print("Setting up ForgeEngine configuration.")
+        memory = input("Memory file path [memory.json]: ") or "memory.json"
+        think = input("Think interval seconds [10]: ")
+        think = int(think) if think else 10
+        model = input(f"Model name [{PRIMARY_MODEL}]: ") or PRIMARY_MODEL
+        tokens = input("Max tokens [512]: ")
+        tokens = int(tokens) if tokens else 512
+        config = {
+            "memory": memory,
+            "think": think,
+            "model": model,
+            "max_tokens": tokens,
+        }
+        save = input("Save configuration for next time? [Y/n]: ").strip().lower()
+        if not save or save.startswith("y"):
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(config, fh, indent=2)
+            print(f"Configuration saved to {path}")
+        return config
+
+    with open(path, "r", encoding="utf-8") as fh:
+        return json.load(fh)
 
 
 def run_chat(args: argparse.Namespace) -> None:
@@ -59,21 +92,21 @@ def show_glossary(args: argparse.Namespace) -> None:
         print(f"{word}: {count}")
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser(config: dict) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Narrative Engine CLI")
-    parser.add_argument("--memory", default="memory.json", help="Memory file path")
+    parser.add_argument("--memory", default=config.get("memory", "memory.json"), help="Memory file path")
     parser.add_argument(
-        "--think", type=int, default=10, help="Seconds of idle before thinking"
+        "--think", type=int, default=config.get("think", 10), help="Seconds of idle before thinking"
     )
     parser.add_argument(
         "--model",
-        default="mradermacher/Uncensored_DeepSeek_R1_Distill_Qwen_1.5B_safetensors_finetune_2-GGUF",
+        default=config.get("model", PRIMARY_MODEL),
         help="HuggingFace model name to use for generation",
     )
     parser.add_argument(
         "--max-tokens",
         type=int,
-        default=512,
+        default=config.get("max_tokens", 512),
         help="Maximum tokens to generate for each response",
     )
 
@@ -94,8 +127,18 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
-    parser = build_parser()
-    args = parser.parse_args()
+    base = argparse.ArgumentParser(add_help=False)
+    base.add_argument("--config", default=CONFIG_PATH)
+    base.add_argument("--setup", action="store_true")
+    known, remaining = base.parse_known_args()
+
+    config = load_config(known.config, force_setup=known.setup)
+
+    parser = build_parser(config)
+    parser.add_argument("--config", default=known.config, help=argparse.SUPPRESS)
+    parser.add_argument("--setup", action="store_true", help="Run interactive setup")
+
+    args = parser.parse_args(remaining)
     if not hasattr(args, "func"):
         parser.print_help()
         return

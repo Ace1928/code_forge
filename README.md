@@ -45,3 +45,9 @@ forgengine memory
 
 Other subcommands include `events` and `glossary`. Use `--help` for details.
 
+### Interactive setup
+
+Running `forgengine` with no existing configuration walks you through a short
+setup. Your choices are stored in `~/.forgengine.json` and reused on subsequent
+runs. Use `--setup` at any time to reconfigure.
+

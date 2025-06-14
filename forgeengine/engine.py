@@ -4,13 +4,25 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 try:
-    from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+    from transformers import (
+        AutoModel,
+        AutoModelForCausalLM,
+        AutoTokenizer,
+        pipeline,
+    )
 except Exception:  # pragma: no cover - optional dependency
+    AutoModel = None  # type: ignore
     AutoModelForCausalLM = None  # type: ignore
     AutoTokenizer = None  # type: ignore
     pipeline = None  # type: ignore
 
 from .memory import MemoryStore
+
+
+PRIMARY_MODEL = (
+    "mradermacher/Uncensored_DeepSeek_R1_Distill_Qwen_1.5B_safetensors_finetune_2-GGUF"
+)
+FALLBACK_MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
 
 class NarrativeEngine:
@@ -20,7 +32,7 @@ class NarrativeEngine:
         self,
         memory_path: str = "memory.json",
         think_interval: int = 10,
-        model_name: str = "mradermacher/Uncensored_DeepSeek_R1_Distill_Qwen_1.5B_safetensors_finetune_2-GGUF",
+        model_name: str = PRIMARY_MODEL,
         max_tokens: int = 512,
     ) -> None:
         self.store = MemoryStore(memory_path)
@@ -34,13 +46,30 @@ class NarrativeEngine:
         if not AutoModelForCausalLM:
             print("Warning: transformers not installed. Falling back to echo mode.")
             return None
+
         try:
             tokenizer = AutoTokenizer.from_pretrained(self.model_name)
             model = AutoModelForCausalLM.from_pretrained(self.model_name)
-            return pipeline("text-generation", model=model, tokenizer=tokenizer)
         except Exception as exc:
-            print(f"Warning: failed to load model {self.model_name}: {exc}. Using echo mode.")
-            return None
+            print(f"Warning: failed to load model {self.model_name}: {exc}")
+            try:
+                if AutoModel:
+                    model = AutoModel.from_pretrained(self.model_name)
+                    tokenizer = AutoTokenizer.from_pretrained(FALLBACK_MODEL)
+                else:
+                    raise RuntimeError("AutoModel unavailable")
+            except Exception:
+                print(f"Attempting fallback model {FALLBACK_MODEL}")
+                try:
+                    tokenizer = AutoTokenizer.from_pretrained(FALLBACK_MODEL)
+                    model = AutoModelForCausalLM.from_pretrained(FALLBACK_MODEL)
+                except Exception as exc2:
+                    print(
+                        f"Warning: failed to load fallback model {FALLBACK_MODEL}: {exc2}. Using echo mode."
+                    )
+                    return None
+
+        return pipeline("text-generation", model=model, tokenizer=tokenizer)
 
     def _reset_timer(self) -> None:
         if self._timer:
