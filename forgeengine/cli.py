@@ -6,7 +6,11 @@ from .engine import NarrativeEngine
 
 
 def run_chat(args: argparse.Namespace) -> None:
-    engine = NarrativeEngine(memory_path=args.memory, think_interval=args.think)
+    engine = NarrativeEngine(
+        memory_path=args.memory,
+        think_interval=args.think,
+        model_name=args.model,
+    )
     engine._reset_timer()
     print("Type 'quit' or 'exit' to stop.")
     try:
@@ -22,19 +26,31 @@ def run_chat(args: argparse.Namespace) -> None:
 
 
 def show_memory(args: argparse.Namespace) -> None:
-    engine = NarrativeEngine(memory_path=args.memory, think_interval=args.think)
+    engine = NarrativeEngine(
+        memory_path=args.memory,
+        think_interval=args.think,
+        model_name=args.model,
+    )
     for item in engine.store.data.interactions:
         print(f"{item['timestamp']}: {item['user']} -> {item['response']}")
 
 
 def show_events(args: argparse.Namespace) -> None:
-    engine = NarrativeEngine(memory_path=args.memory, think_interval=args.think)
+    engine = NarrativeEngine(
+        memory_path=args.memory,
+        think_interval=args.think,
+        model_name=args.model,
+    )
     for evt in engine.store.data.events:
         print(f"{evt['timestamp']}: {evt['event']}")
 
 
 def show_glossary(args: argparse.Namespace) -> None:
-    engine = NarrativeEngine(memory_path=args.memory, think_interval=args.think)
+    engine = NarrativeEngine(
+        memory_path=args.memory,
+        think_interval=args.think,
+        model_name=args.model,
+    )
     for word, count in sorted(engine.store.data.glossary.items()):
         print(f"{word}: {count}")
 
@@ -44,6 +60,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--memory", default="memory.json", help="Memory file path")
     parser.add_argument(
         "--think", type=int, default=10, help="Seconds of idle before thinking"
+    )
+    parser.add_argument(
+        "--model",
+        default="Qwen/Qwen1.5-0.5B",
+        help="HuggingFace model name to use for generation",
     )
 
     sub = parser.add_subparsers(dest="command")
