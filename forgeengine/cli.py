@@ -6,6 +6,7 @@ import os
 from typing import List
 
 from .engine import NarrativeEngine, PRIMARY_MODEL
+from .memory import MemoryStore
 
 
 CONFIG_PATH = os.path.expanduser("~/.forgengine.json")
@@ -68,13 +69,17 @@ def load_config(path: str = CONFIG_PATH, force_setup: bool = False) -> dict:
 
 
 def run_chat(args: argparse.Namespace) -> None:
-    engine = NarrativeEngine(
-        memory_path=args.memory,
-        think_interval=args.think,
-        model_name=args.model,
-        max_tokens=args.max_tokens,
-        adapter_path=args.adapter,
-    )
+    try:
+        engine = NarrativeEngine(
+            memory_path=args.memory,
+            think_interval=args.think,
+            model_name=args.model,
+            max_tokens=args.max_tokens,
+            adapter_path=args.adapter,
+        )
+    except Exception as exc:
+        print(f"Failed to start engine: {exc}")
+        return
     engine._reset_timer()
     print("Type 'quit' or 'exit' to stop.")
     try:
@@ -90,38 +95,20 @@ def run_chat(args: argparse.Namespace) -> None:
 
 
 def show_memory(args: argparse.Namespace) -> None:
-    engine = NarrativeEngine(
-        memory_path=args.memory,
-        think_interval=args.think,
-        model_name=args.model,
-        max_tokens=args.max_tokens,
-        adapter_path=args.adapter,
-    )
-    for item in engine.store.data.interactions:
+    store = MemoryStore(args.memory)
+    for item in store.data.interactions:
         print(f"{item['timestamp']}: {item['user']} -> {item['response']}")
 
 
 def show_events(args: argparse.Namespace) -> None:
-    engine = NarrativeEngine(
-        memory_path=args.memory,
-        think_interval=args.think,
-        model_name=args.model,
-        max_tokens=args.max_tokens,
-        adapter_path=args.adapter,
-    )
-    for evt in engine.store.data.events:
+    store = MemoryStore(args.memory)
+    for evt in store.data.events:
         print(f"{evt['timestamp']}: {evt['event']}")
 
 
 def show_glossary(args: argparse.Namespace) -> None:
-    engine = NarrativeEngine(
-        memory_path=args.memory,
-        think_interval=args.think,
-        model_name=args.model,
-        max_tokens=args.max_tokens,
-        adapter_path=args.adapter,
-    )
-    for word, count in sorted(engine.store.data.glossary.items()):
+    store = MemoryStore(args.memory)
+    for word, count in sorted(store.data.glossary.items()):
         print(f"{word}: {count}")
 
 def list_models(args: argparse.Namespace) -> None:

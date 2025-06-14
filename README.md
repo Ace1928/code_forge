@@ -4,7 +4,8 @@ This repository contains a proof-of-concept narrative engine that maintains
 persistent memory of conversations and events. The system can run in an
 interactive chat mode from the command line, storing all interactions in a
 local JSON file. During idle periods the engine generates autonomous
-"thoughts" that are also recorded.
+"thoughts" that are also recorded. If the configured model cannot be loaded the
+engine now stops with a clear error instead of falling back to an echo mode.
 
 ## Features
 
@@ -14,6 +15,18 @@ local JSON file. During idle periods the engine generates autonomous
   been received for a configurable period.
 - **Command line interface** with subcommands to chat and inspect memory.
 - **Model-based responses** powered by a small open-source language model.
+
+## Installation
+
+Run the bundled `install.sh` script to create a virtual environment and install
+dependencies in editable mode:
+
+```bash
+./install.sh
+```
+
+Activate the environment with `source .venv/bin/activate` and you are ready to
+run the `forgengine` command.
 
 ## Usage
 
@@ -54,4 +67,7 @@ time to reconfigure. A `models` subcommand lists discovered models.
 
 Optionally specify an adapter path with `--adapter` to apply LoRA weights if the
 `peft` package is available.
+
+If the selected model cannot be loaded an error is printed and the program
+terminates so you always know when something is wrong.
 
