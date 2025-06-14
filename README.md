@@ -31,7 +31,7 @@ run the `forgengine` command.
 ## Usage
 
 Run the chat interface. By default the engine uses the
-`mradermacher/Uncensored_DeepSeek_R1_Distill_Qwen_1.5B_safetensors_finetune_2-GGUF`
+`Qwen/Qwen3-1.7B-FP8`
 model from HuggingFace:
 
 ```bash
