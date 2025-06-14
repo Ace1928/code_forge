@@ -20,7 +20,7 @@ local JSON file. During idle periods the engine generates autonomous
 Run the chat interface (optionally specifying a HuggingFace model):
 
 ```bash
-python -m forgeengine.cli --model Qwen/Qwen1.5-0.5B chat
+python -m forgeengine.cli --model Qwen/Qwen2.5-0.5B chat
 ```
 
 During testing or on resource-limited systems you can use a tiny model:
