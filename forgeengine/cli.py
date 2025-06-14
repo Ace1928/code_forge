@@ -28,7 +28,6 @@ def discover_local_models(directories: List[str] | None = None) -> List[str]:
                 found.append(root)
     return sorted(found)
 
-
 def load_config(path: str = CONFIG_PATH, force_setup: bool = False) -> dict:
     """Load configuration or run interactive setup."""
     path = os.path.expanduser(path)
@@ -49,6 +48,7 @@ def load_config(path: str = CONFIG_PATH, force_setup: bool = False) -> dict:
         tokens = input("Max tokens [512]: ")
         tokens = int(tokens) if tokens else 512
         adapter = input("Adapter path [none]: ") or ""
+
         config = {
             "memory": memory,
             "think": think,
@@ -124,11 +124,9 @@ def show_glossary(args: argparse.Namespace) -> None:
     for word, count in sorted(engine.store.data.glossary.items()):
         print(f"{word}: {count}")
 
-
 def list_models(args: argparse.Namespace) -> None:
     for path in discover_local_models():
         print(path)
-
 
 def build_parser(config: dict) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Narrative Engine CLI")
