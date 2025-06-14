@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 from datetime import datetime
@@ -15,6 +16,11 @@ except Exception:  # pragma: no cover - optional dependency
     AutoModelForCausalLM = None  # type: ignore
     AutoTokenizer = None  # type: ignore
     pipeline = None  # type: ignore
+
+try:
+    from peft import PeftModel
+except Exception:  # pragma: no cover - optional dependency
+    PeftModel = None  # type: ignore
 
 from .memory import MemoryStore
 
@@ -34,11 +40,13 @@ class NarrativeEngine:
         think_interval: int = 10,
         model_name: str = PRIMARY_MODEL,
         max_tokens: int = 512,
+        adapter_path: str | None = None,
     ) -> None:
         self.store = MemoryStore(memory_path)
         self.think_interval = think_interval
         self.model_name = model_name
         self.max_tokens = max_tokens
+        self.adapter_path = adapter_path
         self._timer: Optional[threading.Timer] = None
         self._pipeline = self._load_model()
 
@@ -47,27 +55,35 @@ class NarrativeEngine:
             print("Warning: transformers not installed. Falling back to echo mode.")
             return None
 
-        try:
-            tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            model = AutoModelForCausalLM.from_pretrained(self.model_name)
-        except Exception as exc:
-            print(f"Warning: failed to load model {self.model_name}: {exc}")
+        model = None
+        tokenizer = None
+        for name in [self.model_name, FALLBACK_MODEL]:
             try:
-                if AutoModel:
-                    model = AutoModel.from_pretrained(self.model_name)
-                    tokenizer = AutoTokenizer.from_pretrained(FALLBACK_MODEL)
-                else:
-                    raise RuntimeError("AutoModel unavailable")
-            except Exception:
-                print(f"Attempting fallback model {FALLBACK_MODEL}")
+                tokenizer = AutoTokenizer.from_pretrained(name, local_files_only=True)
+                model = AutoModelForCausalLM.from_pretrained(name, local_files_only=True)
+                print(f"Loaded local model {name}")
+                break
+            except Exception as exc_local:
+                print(f"Local load failed for {name}: {exc_local}")
                 try:
-                    tokenizer = AutoTokenizer.from_pretrained(FALLBACK_MODEL)
-                    model = AutoModelForCausalLM.from_pretrained(FALLBACK_MODEL)
-                except Exception as exc2:
-                    print(
-                        f"Warning: failed to load fallback model {FALLBACK_MODEL}: {exc2}. Using echo mode."
-                    )
-                    return None
+                    tokenizer = AutoTokenizer.from_pretrained(name)
+                    model = AutoModelForCausalLM.from_pretrained(name)
+                    print(f"Loaded remote model {name}")
+                    break
+                except Exception as exc_remote:
+                    print(f"Remote load failed for {name}: {exc_remote}")
+                    model = None
+
+        if not model or not tokenizer:
+            print("Using echo mode.")
+            return None
+
+        if self.adapter_path and PeftModel and os.path.exists(self.adapter_path):
+            try:
+                model = PeftModel.from_pretrained(model, self.adapter_path)
+                print(f"Loaded adapter from {self.adapter_path}")
+            except Exception as exc:
+                print(f"Failed to load adapter {self.adapter_path}: {exc}")
 
         return pipeline("text-generation", model=model, tokenizer=tokenizer)
 
