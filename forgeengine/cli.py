@@ -10,6 +10,7 @@ def run_chat(args: argparse.Namespace) -> None:
         memory_path=args.memory,
         think_interval=args.think,
         model_name=args.model,
+        max_tokens=args.max_tokens,
     )
     engine._reset_timer()
     print("Type 'quit' or 'exit' to stop.")
@@ -30,6 +31,7 @@ def show_memory(args: argparse.Namespace) -> None:
         memory_path=args.memory,
         think_interval=args.think,
         model_name=args.model,
+        max_tokens=args.max_tokens,
     )
     for item in engine.store.data.interactions:
         print(f"{item['timestamp']}: {item['user']} -> {item['response']}")
@@ -40,6 +42,7 @@ def show_events(args: argparse.Namespace) -> None:
         memory_path=args.memory,
         think_interval=args.think,
         model_name=args.model,
+        max_tokens=args.max_tokens,
     )
     for evt in engine.store.data.events:
         print(f"{evt['timestamp']}: {evt['event']}")
@@ -50,6 +53,7 @@ def show_glossary(args: argparse.Namespace) -> None:
         memory_path=args.memory,
         think_interval=args.think,
         model_name=args.model,
+        max_tokens=args.max_tokens,
     )
     for word, count in sorted(engine.store.data.glossary.items()):
         print(f"{word}: {count}")
@@ -63,8 +67,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--model",
-        default="Qwen/Qwen1.5-0.5B",
+        default="mradermacher/Uncensored_DeepSeek_R1_Distill_Qwen_1.5B_safetensors_finetune_2-GGUF",
         help="HuggingFace model name to use for generation",
+    )
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=512,
+        help="Maximum tokens to generate for each response",
     )
 
     sub = parser.add_subparsers(dest="command")
