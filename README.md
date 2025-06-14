@@ -45,3 +45,13 @@ forgengine memory
 
 Other subcommands include `events` and `glossary`. Use `--help` for details.
 
+### Interactive setup
+
+Running `forgengine` with no existing configuration walks you through a short
+setup. It scans for local HuggingFace models and lets you pick one, storing your
+choice along with other options in `~/.forgengine.json`. Use `--setup` at any
+time to reconfigure. A `models` subcommand lists discovered models.
+
+Optionally specify an adapter path with `--adapter` to apply LoRA weights if the
+`peft` package is available.
+
